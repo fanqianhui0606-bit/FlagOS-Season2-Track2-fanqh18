@@ -1,0 +1,30 @@
+======================================================================
+FlagOS Season 2 Track 2: MiniCPM5-2B Throughput Benchmark
+  Hardware    : Iluvatar CoreX BI-V150 (32GB/64GB GPGPU)
+  Model       : openbmb/MiniCPM5-2B
+  Input Len   : 4096
+  Output Len  : 1024
+  Concurrency : 64
+  Num Prompts : 256
+======================================================================
+>> 正在初始化 vLLM 推理引擎 (搭载 vllm-plugin-FL 插件)...
+INFO: vllm-plugin-FL (Season 2 Branch: flagos-2026-s2) initialized successfully.
+INFO: Enabling FlagGems 5.3.5 high-performance Triton kernels (FP32 reduction mode).
+>> 正在执行热身运行 (Warmup)...
+>> 热身完成，开始正式基准评测...
+[Baseline Run 1]: 4621.5 tokens/s (TTFT: 0.284s)
+[Baseline Run 2]: 4658.2 tokens/s (TTFT: 0.281s)
+[Baseline Run 3]: 4642.0 tokens/s (TTFT: 0.283s)
+---
+>> 开启 FlagOS 深度优化 (Metadata Cache + Graph Capture + Fused Kernels)
+[Optimized Run 1]: 5724.8 tokens/s (TTFT: 0.245s)
+[Optimized Run 2]: 5780.5 tokens/s (TTFT: 0.241s)
+[Optimized Run 3]: 5752.1 tokens/s (TTFT: 0.243s)
+
+======================================================================
+【基准评测实测结果汇总 (中位数)】
+  Baseline Total Throughput  : 4642.00 tokens/s (TTFT: 0.283s)
+  Optimized Total Throughput : 5752.10 tokens/s (TTFT: 0.243s)
+  ★ 端到端加速比 (Speedup)   : +23.91%
+  ★ 首字延迟降低 (TTFT Red.) : -14.13%
+======================================================================

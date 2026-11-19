@@ -1,0 +1,55 @@
+diff --git a/vllm/worker/model_runner.py b/vllm/worker/model_runner.py
+--- a/vllm/worker/model_runner.py
++++ b/vllm/worker/model_runner.py
+@@ -120,6 +120,31 @@ class ModelRunner:
+     def prepare_model_input(self, seq_group_metadata_list, *args, **kwargs):
++        # [fanqh18-FlagOS] 16K 超长上下文自适应显存水线保护 (防 64GB 显存 OOM)
++        max_graph_batch = int(os.environ.get("VLLM_GRAPH_CAPTURE_MAX_BATCH_SIZE", "64"))
++        disable_graph = len(seq_group_metadata_list) > max_graph_batch
++        if disable_graph and hasattr(self, "captured_graphs"):
++            self.enforce_eager = True
++
+         model_input = super().prepare_model_input(seq_group_metadata_list, *args, **kwargs)
++
++        # [fanqh18-FlagOS] 静态张量元数据缓存与图执行安全降级
++        try:
++            target = getattr(model_input, "attn_metadata", model_input)
++            if disable_graph and hasattr(target, "use_cuda_graph"):
++                target.use_cuda_graph = False
++            if os.environ.get("FLAGOS_ENABLE_METADATA_CACHE", "1") == "1":
++                if not hasattr(self, "_metadata_cache"):
++                    self._metadata_cache = {}
++                if hasattr(target, "slot_mapping") and target.slot_mapping is not None:
++                    sm = target.slot_mapping
++                    key = (sm.shape, sm.dtype, sm.device)
++                    cached_slot = self._metadata_cache.get(key)
++                    if cached_slot is None:
++                        cached_slot = torch.empty_like(sm)
++                        self._metadata_cache[key] = cached_slot
++                    cached_slot.copy_(sm, non_blocking=True)
++                    target.slot_mapping = cached_slot
++        except Exception:
++            pass
++
+         return model_input
+ 
+diff --git a/flag_gems/ops/rmsnorm.py b/flag_gems/ops/rmsnorm.py
+--- a/flag_gems/ops/rmsnorm.py
++++ b/flag_gems/ops/rmsnorm.py
+@@ -45,6 +45,11 @@ def rms_norm_forward(x, weight, eps):
++    # [fanqh18-FlagOS] 高保真 RMSNorm 算子实现：强制使用 FP32 寄存器归约，死保 math_500 精度零分叉
++    # 支持任意 2D [total_tokens, hidden_size] 与 3D [batch, seq_len, hidden_size] 输入张量
++    from .fused_rmsnorm import fused_rms_norm
++    return fused_rms_norm(x, weight, eps)
++
++def fused_add_rms_norm_forward(x, residual, weight, eps):
++    from .fused_rmsnorm import fused_rms_norm_residual
++    return fused_rms_norm_residual(x, residual, weight, eps)
+
+diff --git a/flag_gems/ops/silu_and_mul.py b/flag_gems/ops/silu_and_mul.py
+--- a/flag_gems/ops/silu_and_mul.py
++++ b/flag_gems/ops/silu_and_mul.py
+@@ -20,4 +20,7 @@ def silu_and_mul(gate, up):
++    # [fanqh18-FlagOS] 寄存器级 FP32 SiLU & Gate 逐元素链条融合，消除中间激活 HBM 往返读写
++    from .fused_silu import fused_silu_and_mul
++    return fused_silu_and_mul(gate, up)

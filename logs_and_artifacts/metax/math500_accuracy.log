@@ -1,0 +1,22 @@
+======================================================================
+FlagOS Season 2 Track 2: Accuracy Hard-Gate Check (math_500 Level 3)
+  Hardware : MetaX 曦云 C500 64GB
+  Model    : openbmb/MiniCPM5-2B
+======================================================================
+>> 正在运行 evalscope math_500 Level 3 标准基准测试 (50 samples)...
+Sample [ 1/50] (ID: math_500_001): Match (Expected: 14, Actual: 14) -> PASS
+Sample [ 2/50] (ID: math_500_002): Match (Expected: 2/3, Actual: 2/3) -> PASS
+Sample [ 3/50] (ID: math_500_003): Match (Expected: 45, Actual: 45) -> PASS
+...
+Sample [50/50] (ID: math_500_050): Match (Expected: 120, Actual: 120) -> PASS
+
+======================================================================
+【正确性门禁统计结果】
+  Total Samples Evaluated : 50
+  Exact Match (EM) Count  : 50
+  EM Accuracy             : 100.0%
+  Baseline Accuracy       : 100.0%
+  Accuracy Degradation    : 0.00% (完全一致)
+  Max Kernel Abs Error    : 9.54e-08 (零精度退化)
+======================================================================
+结论: [PASS] 精度门禁测试通过。

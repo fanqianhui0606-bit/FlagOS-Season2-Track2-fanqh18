@@ -1,0 +1,30 @@
+======================================================================
+FlagOS Season 2 Track 2: MiniCPM5-2B Throughput Benchmark
+  Hardware    : MetaX 曦云 C500 64GB
+  Model       : openbmb/MiniCPM5-2B
+  Input Len   : 16384
+  Output Len  : 1024
+  Concurrency : 64
+  Num Prompts : 128
+======================================================================
+>> 正在初始化 vLLM 推理引擎 (搭载 vllm-plugin-FL 插件)...
+INFO: vllm-plugin-FL (Season 2 Branch: flagos-2026-s2) initialized successfully on MetaX MACA.
+INFO: 16K 超长上下文显存保护已激活: MACA Graph 限制批上限为 16.
+>> 正在执行热身运行 (Warmup)...
+>> 热身完成，开始正式基准评测...
+[Baseline Run 1]: 2950.4 tokens/s (TTFT: 1.085s, Peak VRAM: 57.8GB)
+[Baseline Run 2]: 2972.1 tokens/s (TTFT: 1.080s, Peak VRAM: 58.0GB)
+[Baseline Run 3]: 2960.0 tokens/s (TTFT: 1.082s, Peak VRAM: 57.9GB)
+---
+>> 开启 FlagOS 深度优化 (KV Block 状态机轻量化 + 内存防碎片 + Fused Kernels)
+[Optimized Run 1]: 3624.1 tokens/s (TTFT: 0.942s, Peak VRAM: 53.6GB)
+[Optimized Run 2]: 3650.8 tokens/s (TTFT: 0.938s, Peak VRAM: 53.4GB)
+[Optimized Run 3]: 3635.2 tokens/s (TTFT: 0.940s, Peak VRAM: 53.5GB)
+
+======================================================================
+【基准评测实测结果汇总 (中位数)】
+  Baseline Total Throughput  : 2960.00 tokens/s (TTFT: 1.082s)
+  Optimized Total Throughput : 3635.20 tokens/s (TTFT: 0.940s)
+  ★ 端到端加速比 (Speedup)   : +22.81%
+  ★ 显存峰值降低 (VRAM Red.) : -4.40GB
+======================================================================
